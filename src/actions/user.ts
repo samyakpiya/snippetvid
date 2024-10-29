@@ -98,9 +98,9 @@ export const getNotifications = async () => {
       return { status: 200, data: notifcations };
     }
 
-    return { status: 404, data: [] };
+    return { status: 404, data: undefined };
   } catch (error) {
-    return { status: 400 };
+    return { status: 400, data: undefined };
   }
 };
 
