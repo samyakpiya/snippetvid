@@ -1,5 +1,5 @@
 import React from "react";
-import { Spinner } from "./spinner";
+import { Spinner } from "@/components/global/loader/spinner";
 import { cn } from "@/lib/utils";
 
 type Props = {

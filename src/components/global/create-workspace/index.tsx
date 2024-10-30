@@ -3,7 +3,7 @@
 import { getWorkspaces } from "@/actions/workspace";
 import { useQuery } from "@tanstack/react-query";
 import React from "react";
-import Modal from "../modal";
+import Modal from "@/components/global/modal";
 import { Button } from "@/components/ui/button";
 import { FolderPlus } from "lucide-react";
 import WorkspaceForm from "@/components/forms/workspace-form";
