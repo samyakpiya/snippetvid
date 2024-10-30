@@ -1,7 +1,7 @@
 "use client";
 
 import { getWorkspaces } from "@/actions/workspace";
-import { CompanyLogo } from "../logos";
+import { CompanyLogo } from "@/components/global/logos";
 import {
   Select,
   SelectContent,
@@ -17,16 +17,16 @@ import { usePathname, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import Modal from "@/components/global/modal";
 import { Menu, PlusCircle } from "lucide-react";
-import Search from "../search";
-import SidebarItem from "./sidebar-item";
+import Search from "@/components/global/search";
+import SidebarItem from "@/components/global/sidebar/sidebar-item";
 import { MENU_ITEMS } from "@/constants";
 import { getNotifications } from "@/actions/user";
-import WorkspacePlaceholder from "./workspace-placeholder";
-import GlobalCard from "../global-card";
+import WorkspacePlaceholder from "@/components/global/sidebar/workspace-placeholder";
+import GlobalCard from "@/components/global/global-card";
 import { Button } from "@/components/ui/button";
-import Loader from "../loader";
+import Loader from "@/components/global/loader";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import InfoBar from "../info-bar";
+import InfoBar from "@/components/global/info-bar";
 
 type Props = {
   activeWorkspaceId: string;

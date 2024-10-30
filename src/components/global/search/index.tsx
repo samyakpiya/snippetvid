@@ -6,7 +6,7 @@ import { useMutationData } from "@/hooks/useMutationData";
 import { useSearch } from "@/hooks/useSearch";
 import { User } from "lucide-react";
 import React from "react";
-import Loader from "../loader";
+import Loader from "@/components/global/loader";
 
 type Props = {
   workspaceId: string;

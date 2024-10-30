@@ -20,7 +20,9 @@ type Props = {
   children: React.ReactNode;
 };
 
-const Layout = async ({ params: { workspaceId }, children }: Props) => {
+const Layout = async ({ params, children }: Props) => {
+  const { workspaceId } = await params;
+
   const auth = await onAuthenticateUser();
 
   if (!auth.user?.workspace) redirect("/auth/sign-in");
