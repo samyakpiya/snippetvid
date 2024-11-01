@@ -6,7 +6,7 @@ import Loader from "@/components/global/loader";
 import { Folder as FolderIcon } from "lucide-react";
 import { useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { useMutationData } from "@/hooks/useMutationData";
+import { useMutationData, useMutationDataState } from "@/hooks/useMutationData";
 import { renameFolders } from "@/actions/workspace";
 import { Input } from "@/components/ui/input";
 
@@ -38,12 +38,14 @@ const Folder = ({ name, id, optimistic, count }: Props) => {
     Renamed
   );
 
+  const { latestVariables } = useMutationDataState(["rename-folders"]);
+
   const handleFolderClick = () => {
     if (onRename) return;
     router.push(`${pathname}/folder/${id}`);
   };
 
-  const handleNameDoubleClick = (e: React.MouseEvent<HTMLParagraphElement>) => {
+  const handleNameClick = (e: React.MouseEvent<HTMLParagraphElement>) => {
     e.stopPropagation();
 
     Rename();
@@ -78,19 +80,24 @@ const Folder = ({ name, id, optimistic, count }: Props) => {
             <Input
               autoFocus
               onBlur={updateFolderName}
-              placeholder={name}
-              className="border-none text-base w-full outline-transparent text-neutral-300 bg-transparent p-0"
+              defaultValue={name}
+              className="h-6 w-[200px] border-none text-base text-neutral-300 bg-transparent p-0 focus:outline-none focus-visible:ring-0"
               ref={inputRef}
             />
           ) : (
             <p
-              onClick={(e) => e.stopPropagation()}
-              onDoubleClick={handleNameDoubleClick}
-              className="text-neutral-300"
+              title={name}
+              onClick={handleNameClick}
+              className="h-6 text-base text-neutral-300 w-[200px] truncate"
             >
-              {name}
+              {latestVariables &&
+              latestVariables.status === "pending" &&
+              latestVariables.variables.id === id
+                ? latestVariables.variables.name
+                : name}
             </p>
           )}
+
           <span className="text-sm text-neutral-500">{count || 0} videos</span>
         </div>
       </Loader>
