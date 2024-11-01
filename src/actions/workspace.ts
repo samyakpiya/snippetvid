@@ -242,3 +242,27 @@ export const createFolder = async (workspaceId: string) => {
     return { status: 500, data: "Oops! Something went wrong." };
   }
 };
+
+export const moveVideoLocation = async (
+  videoId: string,
+  workSpaceId: string,
+  folderId: string
+) => {
+  try {
+    const location = await client.video.update({
+      where: {
+        id: videoId,
+      },
+      data: {
+        folderId: folderId || null,
+        workSpaceId,
+      },
+    });
+
+    if (location) return { status: 200, data: "Folder changed successfully." };
+
+    return { status: 404, data: "Workspace/Folder not found." };
+  } catch (error) {
+    return { status: 400, data: "Oops! Something went wrong!" };
+  }
+};
