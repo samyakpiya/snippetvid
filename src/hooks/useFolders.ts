@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useMutationData } from "./useMutationData";
 import { getWorkspaceFolders, moveVideoLocation } from "@/actions/workspace";
 import { useZodForm } from "./useZodForm";
-import { moveVideosSchema } from "@/components/forms/change-video-location/schema";
+import { moveVideoSchema } from "@/components/forms/change-video-location/schema";
 
 export const useMoveVideos = (videoId: string, currentWorkspace: string) => {
   // get state from redux
@@ -36,8 +36,8 @@ export const useMoveVideos = (videoId: string, currentWorkspace: string) => {
   );
 
   // useZodForm
-  const { errors, onFormSubmit, watch, register } = useZodForm(
-    moveVideosSchema,
+  const { form, errors, onFormSubmit, watch, register } = useZodForm(
+    moveVideoSchema,
     mutate,
     {
       folder_id: null,
@@ -66,6 +66,7 @@ export const useMoveVideos = (videoId: string, currentWorkspace: string) => {
   }, [watch]);
 
   return {
+    form,
     onFormSubmit,
     errors,
     register,

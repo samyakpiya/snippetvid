@@ -8,6 +8,8 @@ import { getWorkspaceFolders } from "@/actions/workspace";
 import { useQuery } from "@tanstack/react-query";
 import { useMutationDataState } from "@/hooks/useMutationData";
 import { StringifyOptions } from "querystring";
+import { useDispatch } from "react-redux";
+import { FOLDERS } from "@/redux/slices/folders";
 
 type Props = {
   workspaceId: string;
@@ -28,6 +30,8 @@ export type FoldersProps = {
 };
 
 const Folders = ({ workspaceId }: Props) => {
+  const dispatch = useDispatch();
+
   // get folders
   const { data, isFetched } = useQuery({
     queryKey: ["workspace-folders"],
@@ -39,9 +43,13 @@ const Folders = ({ workspaceId }: Props) => {
   const { data: folders, status } = data as FoldersProps;
 
   if (isFetched && folders) {
+    dispatch(
+      FOLDERS({
+        folders: folders,
+      })
+    );
   }
 
-  // WIP: add redux for folders
   // optimistic variable ==
   // WIP: add the classnames for the folder based on success response
 

@@ -20,9 +20,12 @@ export const useMutationData = (
     mutationFn,
     onSuccess: (data) => {
       if (onSuccess) onSuccess();
-      return toast(data?.status === 200 ? "Success" : "Error", {
-        description: data?.data,
-      });
+      return toast(
+        data?.status === 200 || data.status === 201 ? "Success" : "Error",
+        {
+          description: data?.data,
+        }
+      );
     },
     onSettled: async () => {
       return await client.invalidateQueries({ queryKey: [queryKey] });
