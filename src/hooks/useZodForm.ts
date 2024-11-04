@@ -8,18 +8,22 @@ export const useZodForm = (
   mutation: UseMutateFunction,
   defaultValues?: any
 ) => {
+  const form = useForm<z.infer<typeof schema>>({
+    resolver: zodResolver(schema),
+    defaultValues: { ...defaultValues },
+  });
+
   const {
     register,
     watch,
     reset,
     handleSubmit,
     formState: { errors },
-  } = useForm<z.infer<typeof schema>>({
-    resolver: zodResolver(schema),
-    defaultValues: { ...defaultValues },
+  } = form;
+
+  const onFormSubmit = handleSubmit(async (values) => {
+    return mutation({ ...values });
   });
 
-  const onFormSubmit = handleSubmit(async (values) => mutation({ ...values }));
-
-  return { register, watch, reset, onFormSubmit, errors };
+  return { form, register, watch, reset, onFormSubmit, errors };
 };

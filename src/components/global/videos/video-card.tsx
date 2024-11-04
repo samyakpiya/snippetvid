@@ -30,7 +30,6 @@ const VideoCard = ({
   processing,
   workspaceId,
 }: Props) => {
-  // WIP: Wire up date
   const daysAgo = Math.floor(
     (new Date().getTime() - createdAt.getTime()) / (24 * 60 * 60 * 1000)
   );
