@@ -10,7 +10,7 @@ type Props = {
 const TabMenu = ({ children, defaultValue, triggers }: Props) => {
   return (
     <Tabs defaultValue={defaultValue} className="w-full">
-      <TabsList className="flex justify-start bg-transparent">
+      <TabsList>
         {triggers.map((trigger) => (
           <TabsTrigger
             key={trigger}

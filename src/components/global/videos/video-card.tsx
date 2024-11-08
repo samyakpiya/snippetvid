@@ -54,7 +54,7 @@ const VideoCard = ({
           />
         </div>
         <Link
-          href={`/preview/${id}`}
+          href={`/dashboard/${workspaceId}/video/${id}`}
           className="hover:bg-[#252525] transition duration-150 flex flex-col justify-between h-full"
         >
           <video
