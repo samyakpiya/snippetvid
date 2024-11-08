@@ -10,6 +10,7 @@ import { useMutationDataState } from "@/hooks/useMutationData";
 import { StringifyOptions } from "querystring";
 import { useDispatch } from "react-redux";
 import { FOLDERS } from "@/redux/slices/folders";
+import Videos from "../videos";
 
 type Props = {
   workspaceId: string;
@@ -91,6 +92,11 @@ const Folders = ({ workspaceId }: Props) => {
           </>
         )}
       </section>
+      <Videos
+        workspaceId={workspaceId}
+        folderId={workspaceId}
+        videosKey="user-videos"
+      />
     </div>
   );
 };

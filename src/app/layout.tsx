@@ -1,5 +1,4 @@
 import { ClerkProvider } from "@clerk/nextjs";
-import { ThemeProvider } from "@/components/theme-provider";
 
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
@@ -7,6 +6,7 @@ import "./globals.css";
 import ReactQueryProvider from "@/react-query";
 import { ReduxProvider } from "@/redux/provider";
 import { Toaster } from "sonner";
+import { ThemeProvider } from "@/components/theme";
 
 const inter = Inter({ subsets: ["latin"] });
 

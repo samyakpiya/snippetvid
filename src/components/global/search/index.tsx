@@ -7,6 +7,7 @@ import { useSearch } from "@/hooks/useSearch";
 import { User } from "lucide-react";
 import React from "react";
 import Loader from "@/components/global/loader";
+import { inviteMembers } from "@/actions/user";
 
 type Props = {
   workspaceId: string;
@@ -22,9 +23,7 @@ const Search = ({ workspaceId }: Props) => {
   // WIP: Invite button in UI
   // const { mutate, isPending } = useMutationData(
   //   ["invite-member"],
-  //  (data: {receiverId: string; email: string}) => {
-
-  //  },
+  //  (data: {receiverId: string; email: string}) => inviteMembers(),
   //   "get-users"
   // );
 

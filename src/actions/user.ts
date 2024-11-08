@@ -141,3 +141,222 @@ export const searchUsers = async (query: string) => {
     return { status: 500, data: undefined };
   }
 };
+
+export const getPaymentInfo = async () => {
+  try {
+    const user = await currentUser();
+    if (!user) return { status: 404 };
+
+    const payment = await client.user.findUnique({
+      where: {
+        clerkid: user.id,
+      },
+      select: {
+        subscription: {
+          select: { plan: true },
+        },
+      },
+    });
+
+    if (payment) return { status: 200, data: payment };
+  } catch (error) {
+    return { status: 400 };
+  }
+};
+
+export const getFirstView = async () => {
+  try {
+    const user = await currentUser();
+    if (!user) return { status: 404 };
+
+    const userData = await client.user.findUnique({
+      where: {
+        clerkid: user.id,
+      },
+      select: {
+        firstView: true,
+      },
+    });
+
+    if (userData) {
+      return { status: 200, data: userData.firstView };
+    }
+
+    return { status: 400, data: false };
+  } catch (error) {
+    return { status: 400 };
+  }
+};
+
+export const enableFirstView = async (state: boolean) => {
+  try {
+    const user = await currentUser();
+
+    if (!user) return { status: 404 };
+
+    const view = await client.user.update({
+      where: {
+        clerkid: user.id,
+      },
+      data: {
+        firstView: state,
+      },
+    });
+
+    if (view) {
+      return { status: 200, data: "Settign updated" };
+    }
+  } catch (error) {
+    return { status: 400 };
+  }
+};
+
+export const createCommentAndReply = async (
+  userId: string,
+  comment: string,
+  videoId: string,
+  commentId?: string | undefined
+) => {
+  try {
+    if (commentId) {
+      const reply = await client.comment.update({
+        where: {
+          id: commentId,
+        },
+        data: {
+          reply: {
+            create: {
+              comment,
+              userId,
+              videoId,
+            },
+          },
+        },
+      });
+
+      if (reply) return { status: 200, data: "Reply posted" };
+    }
+
+    const newComment = await client.video.update({
+      where: {
+        id: videoId,
+      },
+      data: {
+        Comment: {
+          create: {
+            comment,
+            userId,
+          },
+        },
+      },
+    });
+
+    if (newComment) return { status: 200, data: "New comment added" };
+  } catch (error) {
+    return { status: 400 };
+  }
+};
+
+export const getUserProfile = async () => {
+  try {
+    const user = await currentUser();
+    if (!user) return { status: 404 };
+
+    const profileIdAndImage = await client.user.findUnique({
+      where: {
+        clerkid: user.id,
+      },
+      select: {
+        image: true,
+        id: true,
+      },
+    });
+
+    if (profileIdAndImage) return { status: 200, data: profileIdAndImage };
+  } catch (error) {
+    return { status: 400 };
+  }
+};
+
+export const getVideoComments = async (id: string) => {
+  try {
+    const comments = await client.comment.findMany({
+      where: {
+        OR: [{ videoId: id }, { commentId: id }],
+        commentId: null,
+      },
+      include: {
+        reply: {
+          include: {
+            User: true,
+          },
+        },
+        User: true,
+      },
+    });
+
+    return { status: 200, data: comments };
+  } catch (error) {
+    return { status: 400 };
+  }
+};
+
+export const inviteMembers = async (
+  workspaceId: string,
+  recieverId: string,
+  email: string
+) => {
+  try {
+    const user = await currentUser();
+    if (!user) return { status: 404 };
+
+    const senderInfo = await client.user.findUnique({
+      where: {
+        clerkid: user.id,
+      },
+      select: {
+        id: true,
+        firstname: true,
+        lastname: true,
+      },
+    });
+
+    if (senderInfo?.id) {
+      const workspace = await client.workSpace.findUnique({
+        where: {
+          id: workspaceId,
+        },
+        select: {
+          name: true,
+        },
+      });
+
+      if (workspace) {
+        const invitation = await client.invite.create({
+          data: {
+            senderId: senderInfo.id,
+            recieverId,
+            workSpaceId: workspaceId,
+            content: `You are invited to join ${workspace.name} Workspace, click accept to confirm.`,
+          },
+          select: {
+            id: true,
+          },
+        });
+
+        await client.user.update({
+          where: {
+            clerkid: user.id,
+          },
+          data: {
+            notification: {
+              create: {
+                content: `${user.firstName} ${user.lastName} invited ${senderInfo.firstname} into ${workspace.name}`,
+              },
+            },
+          },
+        });
+      }
+    }
+  } catch (error) {}
+};
