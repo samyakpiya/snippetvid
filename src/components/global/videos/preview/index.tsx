@@ -1,9 +1,9 @@
 "use client";
 
-import { getPreviewVideo } from "@/actions/workspace";
+import { getPreviewVideo, sendEmailForFirstView } from "@/actions/workspace";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import React from "react";
+import React, { useEffect } from "react";
 import CopyLink from "../copy-link";
 import RichLink from "../rich-link";
 import { truncateString } from "@/lib/utils";
@@ -11,7 +11,6 @@ import { Download } from "lucide-react";
 import TabMenu from "../../tabs";
 import AiTools from "../../ai-tools";
 import VideoTranscript from "../../video-transcript";
-import { TabsContent } from "@/components/ui/tabs";
 import Activities from "../../activities";
 
 type Props = {
@@ -19,14 +18,14 @@ type Props = {
 };
 
 const VideoPreview = ({ videoId }: Props) => {
-  // WIP: Setup notify first view
-  // WIP: Setup activity
   const router = useRouter();
 
   const { data } = useQuery({
     queryKey: ["preview-video"],
     queryFn: () => getPreviewVideo(videoId),
   });
+
+  const notifyFirstView = async () => await sendEmailForFirstView(videoId);
 
   if (!data?.data || data.status !== 200) {
     router.push("/");
@@ -38,6 +37,16 @@ const VideoPreview = ({ videoId }: Props) => {
   const daysAgo = Math.floor(
     (new Date().getTime() - video.createdAt.getTime()) / (24 * 60 * 60 * 1000)
   );
+
+  useEffect(() => {
+    if (video.views === 0) {
+      notifyFirstView();
+    }
+
+    return () => {
+      notifyFirstView();
+    };
+  }, []);
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-3 p-10 lg:px-20 lg:py-10 overflow-y-auto mx-auto gap-5">
