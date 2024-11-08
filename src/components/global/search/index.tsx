@@ -21,11 +21,12 @@ const Search = ({ workspaceId }: Props) => {
 
   // WIP: Wire up sending invitations
   // WIP: Invite button in UI
-  // const { mutate, isPending } = useMutationData(
-  //   ["invite-member"],
-  //  (data: {receiverId: string; email: string}) => inviteMembers(),
-  //   "get-users"
-  // );
+  const { mutate, isPending } = useMutationData(
+    ["invite-member"],
+    (data: { receiverId: string; email: string }) =>
+      inviteMembers(workspaceId, data.receiverId, data.email),
+    "get-users"
+  );
 
   return (
     <div className="flex flex-col gap-y-5">
@@ -65,8 +66,13 @@ const Search = ({ workspaceId }: Props) => {
                 </p>
               </div>
               <div className="flex-1 flex justify-end items-center">
-                <Button onClick={() => {}} className="w-5/12 font-bold">
-                  <Loader state={false} color="#000">
+                <Button
+                  onClick={() =>
+                    mutate({ receiverId: user.id, email: user.email })
+                  }
+                  className="w-5/12 font-bold"
+                >
+                  <Loader state={isPending} color="#000">
                     Invite
                   </Loader>
                 </Button>

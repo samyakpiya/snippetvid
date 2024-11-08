@@ -2,6 +2,33 @@
 
 import { client } from "@/lib/prisma";
 import { currentUser } from "@clerk/nextjs/server";
+import nodemailer from "nodemailer";
+
+export const sendEmail = async (
+  to: string,
+  subject: string,
+  text: string,
+  html?: string
+) => {
+  const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    auth: {
+      user: process.env.MAILER_EMAIL,
+      pass: process.env.MAILER_PASSWORD,
+    },
+  });
+
+  const mailOptions = {
+    to,
+    subject,
+    text,
+    html,
+  };
+
+  return { transporter, mailOptions };
+};
 
 export const onAuthenticateUser = async () => {
   try {
@@ -356,7 +383,90 @@ export const inviteMembers = async (
             },
           },
         });
+
+        if (invitation) {
+          const { transporter, mailOptions } = await sendEmail(
+            email,
+            "You got an invitation!",
+            `You are invited to join ${workspace.name} Workspace, click acecpt to confirm`,
+            `<a href="${process.env.NEXT_PUBLIC_HOST_URL}/invite/${invitation.id}" style="background-color: #000; padding: 5px 10px; border-radius: 10px;">Accept Invite</a>`
+          );
+
+          transporter.sendMail(mailOptions, async (error, info) => {
+            if (error) {
+              console.log("🔴", error.message);
+            } else {
+              console.log("✅ Email send", info);
+            }
+          });
+
+          return { status: 200, data: "Invitation sent" };
+        }
+
+        return { status: 400, data: "Invitation failed" };
       }
+      return { status: 404, data: "Workspace not found" };
     }
-  } catch (error) {}
+
+    return { status: 404, data: "Recipient not found" };
+  } catch (error) {
+    return { status: 400, data: "Oops! Something went wrong" };
+  }
+};
+
+export const acceptInvite = async (inviteId: string) => {
+  try {
+    const user = await currentUser();
+
+    if (!user) return { status: 404 };
+
+    const invitation = await client.invite.findUnique({
+      where: {
+        id: inviteId,
+      },
+      select: {
+        workSpaceId: true,
+        reciever: {
+          select: {
+            clerkid: true,
+          },
+        },
+      },
+    });
+
+    if (user.id !== invitation?.reciever?.clerkid) return { status: 401 };
+
+    const acceptInvite = client.invite.update({
+      where: {
+        id: inviteId,
+      },
+      data: {
+        accepted: true,
+      },
+    });
+
+    const updateMember = client.user.update({
+      where: {
+        clerkid: user.id,
+      },
+      data: {
+        members: {
+          create: {
+            workSpaceId: invitation.workSpaceId,
+          },
+        },
+      },
+    });
+
+    const membersTransaction = await client.$transaction([
+      acceptInvite,
+      updateMember,
+    ]);
+
+    if (membersTransaction) return { status: 200 };
+
+    return { status: 400 };
+  } catch (error) {
+    return { status: 400 };
+  }
 };
