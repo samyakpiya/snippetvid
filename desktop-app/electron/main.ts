@@ -1,7 +1,6 @@
 import { app, BrowserWindow, desktopCapturer, ipcMain } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-import { truncateByDomain } from "recharts/types/util/ChartUtils";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 

@@ -33,6 +33,7 @@ export const verifyAccessToWorkspace = async (workspaceId: string) => {
 
     return { status: 200, data: { workspace: isUserInWorkspace } };
   } catch (error) {
+    console.log(error);
     return { status: 403, data: { workspace: null } };
   }
 };
@@ -58,6 +59,7 @@ export const getWorkspaceFolders = async (workSpaceId: string) => {
 
     return { status: 404, data: [] };
   } catch (error) {
+    console.log(error);
     return { status: 403, data: [] };
   }
 };
@@ -102,6 +104,7 @@ export const getAllUserVideos = async (workSpaceId: string) => {
 
     return { status: 404 };
   } catch (error) {
+    console.log(error);
     return { status: 400 };
   }
 };
@@ -148,6 +151,7 @@ export const getWorkspaces = async () => {
 
     return { status: 404 };
   } catch (error) {
+    console.log(error);
     return { status: 400 };
   }
 };
@@ -196,6 +200,7 @@ export const createWorkspace = async (name: string) => {
       };
     }
   } catch (error) {
+    console.log(error);
     return { status: 400 };
   }
 };
@@ -217,6 +222,7 @@ export const renameFolders = async (folderId: string, name: string) => {
 
     return { status: 400, data: "Folder does not exist." };
   } catch (error) {
+    console.log(error);
     return { status: 500, data: "Oops! Something went wrong." };
   }
 };
@@ -240,6 +246,7 @@ export const createFolder = async (workspaceId: string) => {
       return { status: 200, message: "New Folder Created" };
     }
   } catch (error) {
+    console.log(error);
     return { status: 500, data: "Oops! Something went wrong." };
   }
 };
@@ -264,6 +271,7 @@ export const moveVideoLocation = async (
 
     return { status: 404, data: "Workspace/Folder not found." };
   } catch (error) {
+    console.log(error);
     return { status: 400, data: "Oops! Something went wrong!" };
   }
 };
@@ -312,6 +320,7 @@ export const getPreviewVideo = async (videoId: string) => {
 
     return { status: 404 };
   } catch (error) {
+    console.log(error);
     return { status: 500 };
   }
 };
@@ -371,12 +380,12 @@ export const sendEmailForFirstView = async (videoId: string) => {
       });
 
       const { transporter, mailOptions } = await sendEmail(
-        video.User?.email!,
+        video.User?.email as string,
         "You got a viewer",
         `Your video ${video.title} just got its first viewer`
       );
 
-      transporter.sendMail(mailOptions, async (error, info) => {
+      transporter.sendMail(mailOptions, async (error) => {
         if (error) {
           console.log(error.message);
         } else {
@@ -398,5 +407,28 @@ export const sendEmailForFirstView = async (videoId: string) => {
     }
   } catch (error) {
     console.log(error);
+  }
+};
+
+export const editVideoInfo = async (
+  videoId: string,
+  title: string,
+  description: string
+) => {
+  try {
+    const video = await client.video.update({
+      where: { id: videoId },
+      data: {
+        title,
+        description,
+      },
+    });
+
+    if (video) return { status: 200, data: "Video successfully updated" };
+
+    return { status: 404, data: "Video not found" };
+  } catch (error) {
+    console.log(error);
+    return { status: 400 };
   }
 };

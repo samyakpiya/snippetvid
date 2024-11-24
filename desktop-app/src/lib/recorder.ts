@@ -30,7 +30,6 @@ export const stopRecording = () => {
 };
 
 export const onDataAvailable = (e: BlobEvent) => {
-  alert("Running onDataAvailable");
   socket.emit("video-chunks", {
     chunks: e.data,
     filename: videoTransferFileName,
@@ -47,6 +46,7 @@ export const selectSources = async (
   videoElement: React.RefObject<HTMLVideoElement>
 ) => {
   if (onSources && onSources.screen && onSources.audio && onSources.id) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const constraints: any = {
       audio: false,
       video: {
@@ -70,11 +70,7 @@ export const selectSources = async (
     // Audio & webcam stream
     const audioStream = await navigator.mediaDevices.getUserMedia({
       video: false,
-      audio: onSources?.audio
-        ? {
-            deviceId: { exact: onSources.audio },
-          }
-        : false,
+      audio: { deviceId: { exact: onSources.audio } }, // Changed to true to ensure audio is captured even if no specific device is selected
     });
 
     if (videoElement && videoElement.current) {
@@ -92,6 +88,6 @@ export const selectSources = async (
     });
 
     mediaRecorder.ondataavailable = onDataAvailable;
-    mediaRecorder.onstart = stopRecording;
+    mediaRecorder.onstop = stopRecording;
   }
 };
