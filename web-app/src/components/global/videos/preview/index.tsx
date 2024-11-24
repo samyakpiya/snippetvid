@@ -12,6 +12,7 @@ import TabMenu from "../../tabs";
 import AiTools from "../../ai-tools";
 import VideoTranscript from "../../video-transcript";
 import Activities from "../../activities";
+import EditVideo from "../edit";
 
 type Props = {
   videoId: string;
@@ -27,17 +28,6 @@ const VideoPreview = ({ videoId }: Props) => {
 
   const notifyFirstView = async () => await sendEmailForFirstView(videoId);
 
-  if (!data?.data || data.status !== 200) {
-    router.push("/");
-    return <></>;
-  }
-
-  const { data: video, status, author } = data;
-
-  const daysAgo = Math.floor(
-    (new Date().getTime() - video.createdAt.getTime()) / (24 * 60 * 60 * 1000)
-  );
-
   useEffect(() => {
     if (video.views === 0) {
       notifyFirstView();
@@ -48,21 +38,32 @@ const VideoPreview = ({ videoId }: Props) => {
     };
   }, []);
 
+  if (!data?.data || data.status !== 200) {
+    router.push("/");
+    return <></>;
+  }
+
+  const { data: video, author } = data;
+
+  const daysAgo = Math.floor(
+    (new Date().getTime() - video.createdAt.getTime()) / (24 * 60 * 60 * 1000)
+  );
+
   return (
     <div className="grid grid-cols-1 xl:grid-cols-3 p-10 lg:px-20 lg:py-10 overflow-y-auto mx-auto gap-5">
       <div className="flex flex-col lg:col-span-2 gap-y-10">
         <div>
           <div className="flex gap-x-5 items-start justify-between">
             <h2 className="text-white text-4xl font-bold">{video.title}</h2>
-            {/* {author ? (
+            {author ? (
               <EditVideo
                 videoId={videoId}
-                title={videoId.title}
-                description={video.description}
+                title={video.title as string}
+                description={video.description as string}
               />
             ) : (
               <></>
-            )} */}
+            )}
           </div>
           <span className="flex gap-x-3 mt-2">
             <p className="text-[#9d9d9d] capitalize">
@@ -118,11 +119,11 @@ const VideoPreview = ({ videoId }: Props) => {
             >
               <AiTools
                 videoId={videoId}
-                trial={video.User?.trial!}
-                plan={video.User?.subscription?.plan!}
+                trial={video.User?.trial ?? false}
+                plan={video.User?.subscription?.plan ?? "FREE"}
               />
 
-              <VideoTranscript transcript={video.description!} />
+              <VideoTranscript transcript={video.summery!} />
 
               <Activities
                 author={video.User?.firstname as string}
