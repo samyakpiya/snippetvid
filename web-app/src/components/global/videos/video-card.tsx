@@ -1,3 +1,5 @@
+"use client";
+
 import { Folder, User } from "@prisma/client";
 import React from "react";
 import Loader from "@/components/global/loader";
@@ -89,7 +91,7 @@ const VideoCard = ({
               <span className="flex gap-x-1 items-center">
                 <Share2 fill="#9d9d9d" className="text-[#9d9d9d]" size={12} />
                 <p className="text-xs text-[#9d9d9d] capitalize">
-                  {User?.firstname}'s Workspace
+                  {User?.firstname}&apos;s Workspace
                 </p>
               </span>
             </div>
