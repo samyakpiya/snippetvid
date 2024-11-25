@@ -19,6 +19,13 @@ type Props = {
 };
 
 const AiTools = ({ plan, trial, videoId }: Props) => {
+  // Are they on a free plan?
+  // have they alread tried the AI feature?
+  // if not? Try button
+
+  // useMutationData
+  // serverAction titles and description
+
   // WIP: set the ai hook
   return (
     <TabsContent value="AI Tools">
