@@ -1,9 +1,7 @@
 import { getPaymentInfo } from "@/actions/user";
 import React from "react";
 
-type Props = {};
-
-const BillingPage = async (props: Props) => {
+const BillingPage = async () => {
   const payment = await getPaymentInfo();
 
   return (
