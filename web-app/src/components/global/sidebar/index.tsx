@@ -1,7 +1,7 @@
 "use client";
 
 import { getWorkspaces } from "@/actions/workspace";
-import { CompanyLogo } from "@/components/global/logos";
+import { CompanyLogo } from "@/components/global/images";
 import {
   Select,
   SelectContent,
@@ -24,7 +24,6 @@ import { getNotifications } from "@/actions/user";
 import WorkspacePlaceholder from "@/components/global/sidebar/workspace-placeholder";
 import GlobalCard from "@/components/global/global-card";
 import { Button } from "@/components/ui/button";
-import Loader from "@/components/global/loader";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import InfoBar from "@/components/global/info-bar";
 import { useDispatch } from "react-redux";
