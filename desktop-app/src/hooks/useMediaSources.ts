@@ -15,6 +15,7 @@ export type SourceDeviceStateProps = {
     label: string;
     groupId: string;
   }[];
+  cameras?: MediaDeviceInfo[];
   error?: string | null;
   isPending?: boolean;
 };
@@ -42,22 +43,24 @@ export const useMediaSources = () => {
     }
   );
 
-  const fetchMediaResources = () => {
+  const fetchMediaResources = async () => {
     action({ type: "GET_DEVICES", payload: { isPending: true } });
-    getMediaSources()
-      .then((sources) =>
-        action({
-          type: "GET_DEVICES",
-          payload: {
-            displays: sources.displays,
-            audioInputs: sources.audioInputs,
-            isPending: false,
-          },
-        })
-      )
-      .catch((error) => {
-        console.log(error);
+
+    try {
+      const sources = await getMediaSources();
+      const cameras = await navigator.mediaDevices.enumerateDevices();
+
+      action({
+        type: "GET_DEVICES",
+        payload: {
+          displays: sources.displays,
+          audioInputs: sources.audioInputs,
+          cameras: cameras.filter((camera) => camera.kind === "videoinput"),
+        },
       });
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return { state, fetchMediaResources };

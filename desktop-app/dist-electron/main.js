@@ -1,4 +1,4 @@
-import { app, ipcMain, desktopCapturer, BrowserWindow } from "electron";
+import { Menu, ipcMain, app, desktopCapturer, BrowserWindow } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -10,70 +10,45 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, 
 let win;
 let studio;
 let floatingWebCam;
+const defaultWindowConfig = {
+  frame: false,
+  transparent: true,
+  alwaysOnTop: true,
+  hasShadow: false,
+  resizable: false,
+  skipTaskbar: true,
+  icon: path.join(process.env.VITE_PUBLIC, "SnippetVid Logo.svg"),
+  webPreferences: {
+    preload: path.join(__dirname, "preload.mjs")
+  }
+};
+function loadWindowContent(window, pageName) {
+  if (VITE_DEV_SERVER_URL) {
+    const devUrl = pageName === "index" ? VITE_DEV_SERVER_URL : `${"http://localhost:5173"}/${pageName}.html`;
+    window.loadURL(devUrl);
+  } else {
+    window.loadFile(path.join(RENDERER_DIST, `${pageName}.html`));
+  }
+}
 function createWindow() {
   win = new BrowserWindow({
-    width: 600,
-    height: 600,
-    minHeight: 600,
-    minWidth: 300,
-    frame: false,
-    transparent: true,
-    alwaysOnTop: true,
-    focusable: false,
-    icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      devTools: true,
-      preload: path.join(__dirname, "preload.mjs")
-    }
+    ...defaultWindowConfig,
+    width: 450,
+    height: 450
   });
   studio = new BrowserWindow({
-    width: 400,
-    height: 300,
-    minHeight: 70,
-    maxHeight: 400,
-    minWidth: 300,
-    maxWidth: 400,
-    frame: false,
-    transparent: true,
-    alwaysOnTop: true,
-    focusable: false,
-    icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      devTools: true,
-      preload: path.join(__dirname, "preload.mjs")
-    }
+    ...defaultWindowConfig,
+    width: 200,
+    height: 75
   });
   floatingWebCam = new BrowserWindow({
-    width: 200,
-    height: 200,
-    minWidth: 50,
-    minHeight: 50,
-    maxWidth: 400,
-    maxHeight: 400,
-    resizable: true,
-    frame: false,
-    transparent: true,
-    alwaysOnTop: true,
-    focusable: false,
-    icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      devTools: true,
-      preload: path.join(__dirname, "preload.mjs")
-    }
+    ...defaultWindowConfig,
+    width: 150,
+    height: 150
   });
-  floatingWebCam.setAspectRatio(1);
-  win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
-  win.setAlwaysOnTop(true, "screen-saver", 1);
-  studio.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
-  studio.setAlwaysOnTop(true, "screen-saver", 1);
-  floatingWebCam.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
-  floatingWebCam.setAlwaysOnTop(true, "screen-saver", 1);
+  loadWindowContent(win, "index");
+  loadWindowContent(studio, "studio");
+  loadWindowContent(floatingWebCam, "webcam");
   win.webContents.on("did-finish-load", () => {
     win == null ? void 0 : win.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
   });
@@ -83,30 +58,11 @@ function createWindow() {
       (/* @__PURE__ */ new Date()).toLocaleString()
     );
   });
-  if (VITE_DEV_SERVER_URL) {
-    win.loadURL(VITE_DEV_SERVER_URL);
-    studio.loadURL(`${"http://localhost:5173"}/studio.html`);
-    floatingWebCam.loadURL(`${"http://localhost:5173"}/webcam.html`);
-  } else {
-    win.loadFile(path.join(RENDERER_DIST, "index.html"));
-    studio.loadFile(path.join(RENDERER_DIST, "studio.html"));
-    floatingWebCam.loadFile(path.join(RENDERER_DIST, "webcam.html"));
-  }
 }
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    app.quit();
-    win = null;
-    studio = null;
-    floatingWebCam = null;
-  }
-});
+Menu.setApplicationMenu(null);
 ipcMain.on("closeApp", () => {
   if (process.platform !== "darwin") {
     app.quit();
-    win = null;
-    studio = null;
-    floatingWebCam = null;
   }
 });
 ipcMain.handle("getSources", async () => {
@@ -118,29 +74,33 @@ ipcMain.handle("getSources", async () => {
   console.log("🔴 DISPLAYS", data);
   return data;
 });
-ipcMain.on("media-sources", (event, payload) => {
-  console.log(event);
+ipcMain.on("media-sources", (_event, payload) => {
+  console.log("MEDIA SOURCES RECEIVED BY MAIN");
   studio == null ? void 0 : studio.webContents.send("profile-received", payload);
 });
-ipcMain.on("resize-studio", (event, payload) => {
-  console.log(event);
-  if (payload.shrink) {
-    studio == null ? void 0 : studio.setSize(400, 400);
-  }
-  if (!payload.shrink) {
-    studio == null ? void 0 : studio.setSize(400, 250);
-  }
+ipcMain.on("cam-selected", (_event, camera) => {
+  floatingWebCam == null ? void 0 : floatingWebCam.webContents.send("cam-selected", camera);
 });
-ipcMain.on("hide-plugin", (event, payload) => {
-  console.log(event);
+ipcMain.on("hide-plugin", (_event, payload) => {
   win == null ? void 0 : win.webContents.send("hide-plugin", payload);
 });
-app.on("activate", () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") app.quit();
 });
-app.whenReady().then(createWindow);
+function ensureWindowsOnTop() {
+  [win, studio, floatingWebCam].forEach((window) => {
+    if (window && !window.isDestroyed()) {
+      window.setAlwaysOnTop(true, "floating");
+    }
+  });
+}
+app.whenReady().then(() => {
+  createWindow();
+  setInterval(ensureWindowsOnTop, 1e3);
+  app.on("activate", () => {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  });
+});
 export {
   MAIN_DIST,
   RENDERER_DIST,

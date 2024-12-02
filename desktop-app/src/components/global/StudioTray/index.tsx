@@ -1,12 +1,12 @@
 import { onStopRecording, selectSources, StartRecording } from "@/lib/recorder";
-import { cn, resizeWindow, videoRecordingTime } from "@/lib/utils";
-import { Cast, Pause, Square } from "lucide-react";
+import { cn, videoRecordingTime } from "@/lib/utils";
+import { Pause, Square } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 const StudioTray = () => {
-  let initialTime = new Date();
+  const initialTime = new Date();
 
-  const [preview, setPreview] = useState(false);
+  // const [preview, setPreview] = useState(false);
   const [onTimer, setOnTimer] = useState("00:00:00");
   const [count, setCount] = useState(0);
 
@@ -18,6 +18,7 @@ const StudioTray = () => {
         audio: string;
         preset: "HD" | "SD";
         plan: "PRO" | "FREE";
+        camera: string;
       }
     | undefined
   >(undefined);
@@ -27,23 +28,24 @@ const StudioTray = () => {
     setCount(0);
   };
 
-  window.ipcRenderer.on("profile-received", (event, payload) => {
-    console.log(event);
+  window.ipcRenderer.on("profile-received", (_event, payload) => {
     setOnSources(payload);
   });
 
   const videoElement = useRef<HTMLVideoElement | null>(null);
 
-  useEffect(() => {
-    resizeWindow(preview);
-    return () => resizeWindow(preview);
-  }, []);
+  // useEffect(() => {
+  //   resizeWindow(preview);
+  //   return () => resizeWindow(false);
+  // }, [preview]);
 
   useEffect(() => {
     if (onSources && onSources.screen) {
       selectSources(onSources, videoElement);
       return () => {
-        selectSources(onSources, videoElement);
+        if (videoElement.current) {
+          videoElement.current.srcObject = null;
+        }
       };
     }
   }, [onSources]);
@@ -52,7 +54,7 @@ const StudioTray = () => {
     if (!recording) return;
 
     const recordTimeInterval = setInterval(() => {
-      let time = count + (new Date().getTime() - initialTime.getTime());
+      const time = count + (new Date().getTime() - initialTime.getTime());
       setCount(time);
 
       const recordingTime = videoRecordingTime(time);
@@ -77,15 +79,15 @@ const StudioTray = () => {
   return !onSources ? (
     <></>
   ) : (
-    <div className="flex flex-col justify-end gap-y-5 h-screen">
-      {preview && (
+    <div className="bg-[#171717] border-2 border-neutral-700 flex flex-col rounded-3xl overflow-hidden size-full">
+      {/* {preview && (
         <video
           autoPlay
           ref={videoElement}
-          className="w-6/12 bg-white self-end"
+          className="w-96 rounded-lg shadow-lg bg-black/90 self-end transition-all duration-300 ease-in-out hover:scale-105"
         ></video>
-      )}
-      <div className="rounded-full flex justify-around items-center h-20 w-full border-2 bg-[#171717] draggable border-white/40">
+      )} */}
+      <div className="rounded-full flex justify-between items-center size-full max-w-xl mx-auto bg-[#171717] backdrop-blur-sm draggable p-5">
         <div
           {...(onSources && {
             onClick: () => {
@@ -94,27 +96,30 @@ const StudioTray = () => {
             },
           })}
           className={cn(
-            "non-draggable rounded-full cursor-pointer relative hover:opactiy-80",
-            recording ? "bg-red-500 w-6 h-6" : "bg-red-400 w-8 h-8"
+            "size-[20px] non-draggable rounded-full cursor-pointer relative hover:opacity-80 transition-all duration-300 shadow-md",
+            recording
+              ? "bg-red-500  animate-pulse"
+              : "bg-red-400  hover:bg-red-500"
           )}
         >
           {recording && (
-            <span className="absolute -right-16 top-1/2 transform -translate-y-1/2 text-white">
+            <span className="absolute -right-16 top-1/2 transform -translate-y-1/2 text-white font-mono">
               {onTimer}
             </span>
           )}
         </div>
+
         {!recording ? (
           <Pause
-            className="non-draggable opactiy-50"
-            size={32}
+            className="non-draggable opacity-50 hover:opacity-100 transition-opacity duration-300 cursor-pointer"
+            size={20}
             fill="white"
             stroke="none"
           />
         ) : (
           <Square
-            size={32}
-            className="non-draggable opacity-50"
+            size={20}
+            className="non-draggable opacity-50 hover:opacity-100 transition-opacity duration-300 cursor-pointer"
             fill="white"
             stroke="white"
             onClick={() => {
@@ -124,13 +129,14 @@ const StudioTray = () => {
             }}
           />
         )}
-        <Cast
+
+        {/* <Cast
           size={32}
           fill="white"
-          className="non-draggable cursor-pointer hover:opacity-60"
+          className="non-draggable cursor-pointer opacity-50 hover:opacity-100 transition-opacity duration-300"
           stroke="white"
           onClick={() => setPreview((prev) => !prev)}
-        />
+        /> */}
       </div>
     </div>
   );

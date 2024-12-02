@@ -1,4 +1,4 @@
-import { app, BrowserWindow, desktopCapturer, ipcMain } from "electron";
+import { app, BrowserWindow, desktopCapturer, ipcMain, Menu } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
@@ -28,74 +28,54 @@ let win: BrowserWindow | null;
 let studio: BrowserWindow | null;
 let floatingWebCam: BrowserWindow | null;
 
+// Extract common window configuration
+const defaultWindowConfig = {
+  frame: false,
+  transparent: true,
+  alwaysOnTop: true,
+  hasShadow: false,
+  resizable: false,
+  skipTaskbar: true,
+  icon: path.join(process.env.VITE_PUBLIC, "SnippetVid Logo.svg"),
+  webPreferences: {
+    preload: path.join(__dirname, "preload.mjs"),
+  },
+};
+
+function loadWindowContent(window: BrowserWindow, pageName: string) {
+  if (VITE_DEV_SERVER_URL) {
+    const devUrl =
+      pageName === "index"
+        ? VITE_DEV_SERVER_URL
+        : `${import.meta.env.VITE_APP_URL}/${pageName}.html`;
+    window.loadURL(devUrl);
+  } else {
+    window.loadFile(path.join(RENDERER_DIST, `${pageName}.html`));
+  }
+}
+
 function createWindow() {
   win = new BrowserWindow({
-    width: 600,
-    height: 600,
-    minHeight: 600,
-    minWidth: 300,
-    frame: false,
-    transparent: true,
-    alwaysOnTop: true,
-    focusable: false,
-    icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      devTools: true,
-      preload: path.join(__dirname, "preload.mjs"),
-    },
+    ...defaultWindowConfig,
+    width: 450,
+    height: 450,
   });
 
   studio = new BrowserWindow({
-    width: 400,
-    height: 300,
-    minHeight: 70,
-    maxHeight: 400,
-    minWidth: 300,
-    maxWidth: 400,
-    frame: false,
-    transparent: true,
-    alwaysOnTop: true,
-    focusable: false,
-    icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      devTools: true,
-      preload: path.join(__dirname, "preload.mjs"),
-    },
+    ...defaultWindowConfig,
+    width: 200,
+    height: 75,
   });
 
   floatingWebCam = new BrowserWindow({
-    width: 200,
-    height: 200,
-    minWidth: 50,
-    minHeight: 50,
-    maxWidth: 400,
-    maxHeight: 400,
-    resizable: true,
-    frame: false,
-    transparent: true,
-    alwaysOnTop: true,
-    focusable: false,
-    icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      devTools: true,
-      preload: path.join(__dirname, "preload.mjs"),
-    },
+    ...defaultWindowConfig,
+    width: 150,
+    height: 150,
   });
 
-  floatingWebCam.setAspectRatio(1);
-
-  win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
-  win.setAlwaysOnTop(true, "screen-saver", 1);
-  studio.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
-  studio.setAlwaysOnTop(true, "screen-saver", 1);
-  floatingWebCam.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
-  floatingWebCam.setAlwaysOnTop(true, "screen-saver", 1);
+  loadWindowContent(win, "index");
+  loadWindowContent(studio, "studio");
+  loadWindowContent(floatingWebCam, "webcam");
 
   // Test active push message to Renderer-process.
   win.webContents.on("did-finish-load", () => {
@@ -109,36 +89,16 @@ function createWindow() {
     );
   });
 
-  if (VITE_DEV_SERVER_URL) {
-    win.loadURL(VITE_DEV_SERVER_URL);
-    studio.loadURL(`${import.meta.env.VITE_APP_URL}/studio.html`);
-    floatingWebCam.loadURL(`${import.meta.env.VITE_APP_URL}/webcam.html`);
-  } else {
-    // win.loadFile('dist/index.html')
-    win.loadFile(path.join(RENDERER_DIST, "index.html"));
-    studio.loadFile(path.join(RENDERER_DIST, "studio.html"));
-    floatingWebCam.loadFile(path.join(RENDERER_DIST, "webcam.html"));
-  }
+  // floatingWebCam?.webContents.openDevTools();
+  // win?.webContents.openDevTools();
+  // studio.webContents.openDevTools();
 }
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    app.quit();
-    win = null;
-    studio = null;
-    floatingWebCam = null;
-  }
-});
+Menu.setApplicationMenu(null);
 
 ipcMain.on("closeApp", () => {
   if (process.platform !== "darwin") {
     app.quit();
-    win = null;
-    studio = null;
-    floatingWebCam = null;
   }
 });
 
@@ -154,33 +114,46 @@ ipcMain.handle("getSources", async () => {
   return data;
 });
 
-ipcMain.on("media-sources", (event, payload) => {
-  console.log(event);
+ipcMain.on("media-sources", (_event, payload) => {
+  console.log("MEDIA SOURCES RECEIVED BY MAIN");
   studio?.webContents.send("profile-received", payload);
 });
 
-ipcMain.on("resize-studio", (event, payload) => {
-  console.log(event);
-  if (payload.shrink) {
-    studio?.setSize(400, 400);
-  }
-
-  if (!payload.shrink) {
-    studio?.setSize(400, 250);
-  }
+ipcMain.on("cam-selected", (_event, camera) => {
+  floatingWebCam?.webContents.send("cam-selected", camera);
 });
 
-ipcMain.on("hide-plugin", (event, payload) => {
-  console.log(event);
+// ipcMain.on("resize-studio", (_event, payload) => {
+//   if (payload.shrink) {
+//     studio?.setSize(400, 400);
+//   }
+
+//   if (!payload.shrink) {
+//     studio?.setSize(400, 250);
+//   }
+// });
+
+ipcMain.on("hide-plugin", (_event, payload) => {
   win?.webContents.send("hide-plugin", payload);
 });
 
-app.on("activate", () => {
-  // On OS X it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") app.quit();
 });
 
-app.whenReady().then(createWindow);
+function ensureWindowsOnTop() {
+  [win, studio, floatingWebCam].forEach((window) => {
+    if (window && !window.isDestroyed()) {
+      window.setAlwaysOnTop(true, "floating");
+    }
+  });
+}
+
+app.whenReady().then(() => {
+  createWindow();
+  setInterval(ensureWindowsOnTop, 1000);
+
+  app.on("activate", () => {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  });
+});

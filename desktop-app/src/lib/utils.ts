@@ -19,8 +19,6 @@ export const fetchUserProfile = async (clerkId: string) => {
     },
   });
 
-  console.log(response.data);
-
   return response.data;
 };
 
@@ -33,8 +31,6 @@ export const getMediaSources = async () => {
     (device) => device.kind === "audioinput"
   );
 
-  console.log("getting sources");
-
   return { displays, audioInputs };
 };
 
@@ -42,11 +38,12 @@ export const updateStudioSettings = async (
   id: string,
   screen: string,
   audio: string,
-  preset: "HD" | "SD"
+  preset: "HD" | "SD",
+  camera: string
 ) => {
   const response = await httpsClient.post(
     `/studio/${id}`,
-    { screen, audio, preset },
+    { screen, audio, preset, camera },
     {
       headers: {
         "Content-Type": "applciation/json",

@@ -1,7 +1,14 @@
 import { SourceDeviceStateProps } from "@/hooks/useMediaSources";
 import { useStudioSettings } from "@/hooks/useStudioSettings";
 import { Loader } from "@/components/global/Loader";
-import { Headphones, Monitor, Settings2 } from "lucide-react";
+import { Camera, Headphones, Monitor, Settings2 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Props = {
   state: SourceDeviceStateProps;
@@ -38,82 +45,123 @@ const MediaConfiguration = ({ state, user }: Props) => {
     (device) => device.deviceId === user?.studio?.mic
   );
 
-  const { isPending, onPreset, register } = useStudioSettings(
+  const activeCamera = state.cameras?.[0];
+
+  const { isPending, register } = useStudioSettings(
     user!.id,
     user?.studio?.screen || state.displays?.[0]?.id,
     user?.studio?.mic || state.audioInputs?.[0]?.deviceId,
     user?.studio?.preset,
-    user?.subscription?.plan
+    user?.subscription?.plan,
+    user?.studio?.camera || state.cameras?.[0]?.deviceId
   );
 
   return (
-    <form className="flex h-full relative w-full flex-col gap-y-5">
+    <form className="flex h-full relative w-full flex-col gap-y-6 text-white">
       {isPending && (
-        <div className="fixed z-50 w-full top-0 left-0 bottom-0 rounded-2xl h-full bg-black/80 flex justify-center items-center">
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex justify-center items-center rounded-lg">
           <Loader />
         </div>
       )}
-      <div className="flex gap-x-5 justify-center items-center">
-        <Monitor fill="#575655" color="#575655" size={36} />
-        <select
-          {...register("screen")}
-          className="outline-none cursor-pointer px-5 py-2 rounded-xl border-2 text-white border-[#57655 bg-transparent w-full"
-        >
-          {state.displays?.map((display, key) => (
-            <option
-              key={key}
-              selected={activeScreen && activeScreen.id == display.id}
-              value={display.id}
-              className="bg-[#171717] cursor-pointer"
-            >
-              {display.name}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className="flex gap-x-5 justify-center items-center">
-        <Headphones color="#575655" size={36} />
-        <select
-          {...register("audio")}
-          className="outline-none cursor-pointer px-5 py-2 rounded-xl border-2 text-white border-[#57655 bg-transparent w-full"
-        >
-          {state.audioInputs?.map((device, key) => (
-            <option
-              key={key}
-              selected={activeAudio && activeAudio.deviceId == device.deviceId}
-              value={device.deviceId}
-              className="bg-[#171717] cursor-pointer"
-            >
-              {device.label}
-            </option>
-          ))}
-        </select>
-      </div>
 
-      <div className="flex gap-x-5 justify-center items-center">
-        <Settings2 color="#575655" size={36} />
-        <select
-          {...register("preset")}
-          className="outline-none cursor-pointer px-5 py-2 rounded-xl border-2 text-white border-[#57655 bg-transparent w-full"
-        >
-          <option
-            disabled={user?.subscription?.plan === "FREE"}
-            selected={onPreset === "HD" || user?.studio?.preset === "HD"}
-            value="HD"
-            className="bg-[#171717] cursor-pointer"
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Monitor className="h-6 w-6 text-muted-foreground" />
+          <Select
+            {...register("screen")}
+            defaultValue={activeScreen?.id}
+            disabled
           >
-            1080p{" "}
-            {user?.subscription?.plan === "FREE" && "(Upgrade to PRO plan)"}
-          </option>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder={activeScreen?.name} />
+            </SelectTrigger>
+            <SelectContent>
+              {state.displays?.map((display) => (
+                <SelectItem
+                  key={display.id}
+                  value={display.id}
+                  className="cursor-pointer hover:bg-accent hover:text-accent-foreground"
+                >
+                  {display.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-          <option
-            selected={onPreset === "SD" || user?.studio?.preset === "SD"}
-            value="SD"
-            className="bg-[#171717] cursor-pointer"
+        <div className="flex items-center gap-4">
+          <Camera className="h-6 w-6 text-muted-foreground" />
+          <Select
+            {...register("camera")}
+            defaultValue={activeCamera?.deviceId}
+            onValueChange={(value) =>
+              window.ipcRenderer.send("cam-selected", value)
+            }
           >
-            720p
-          </option>
-        </select>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select camera" />
+            </SelectTrigger>
+            <SelectContent>
+              {state.cameras?.map((camera) => (
+                <SelectItem
+                  key={camera.deviceId}
+                  value={camera.deviceId}
+                  className="cursor-pointer hover:bg-accent hover:text-accent-foreground"
+                >
+                  {camera.label || `Camera ${camera.deviceId.slice(-4)}...`}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <Headphones className="h-6 w-6 text-muted-foreground" />
+          <Select {...register("audio")} defaultValue={activeAudio?.deviceId}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select audio input" />
+            </SelectTrigger>
+            <SelectContent>
+              {state.audioInputs?.map((device) => (
+                <SelectItem
+                  key={device.deviceId}
+                  value={device.deviceId}
+                  className="cursor-pointer hover:bg-accent hover:text-accent-foreground"
+                >
+                  {device.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <Settings2 className="h-6 w-6 text-muted-foreground" />
+          <Select
+            {...register("preset")}
+            defaultValue={user?.studio?.preset || "SD"}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select quality" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem
+                value="HD"
+                disabled={user?.subscription?.plan === "FREE"}
+                className="cursor-pointer hover:bg-accent hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                1080p{" "}
+                {user?.subscription?.plan === "FREE" && "(Upgrade to PRO plan)"}
+              </SelectItem>
+              <SelectItem
+                value="SD"
+                className="cursor-pointer hover:bg-accent hover:text-accent-foreground"
+              >
+                720p
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
     </form>
   );

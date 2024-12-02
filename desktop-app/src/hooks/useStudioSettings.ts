@@ -10,7 +10,8 @@ export const useStudioSettings = (
   screen?: string | null,
   audio?: string | null,
   preset?: "HD" | "SD",
-  plan?: "PRO" | "FREE"
+  plan?: "PRO" | "FREE",
+  camera?: string | null
 ) => {
   const [onPreset, setPreset] = useState<"HD" | "SD" | undefined>();
 
@@ -18,6 +19,7 @@ export const useStudioSettings = (
     screen: screen!,
     audio: audio!,
     preset: preset!,
+    camera: camera!,
   });
 
   const { mutate, isPending } = useMutation({
@@ -27,7 +29,15 @@ export const useStudioSettings = (
       id: string;
       audio: string;
       preset: "HD" | "SD";
-    }) => updateStudioSettings(data.id, data.screen, data.audio, data.preset),
+      camera: string;
+    }) =>
+      updateStudioSettings(
+        data.id,
+        data.screen,
+        data.audio,
+        data.preset,
+        data.camera
+      ),
     onSuccess: (data) => {
       toast({
         title: data.status === 200 ? "Success" : "Error",
@@ -45,8 +55,9 @@ export const useStudioSettings = (
         preset,
         plan,
       });
+      console.log("media-sources-fired from 1");
     }
-  }, [screen, audio]);
+  }, [screen, audio, id, plan, preset]);
 
   useEffect(() => {
     const subscribe = watch((values) => {
@@ -56,18 +67,21 @@ export const useStudioSettings = (
         id,
         audio: values.audio!,
         preset: values.preset!,
+        camera: values.camera!,
       });
       window.ipcRenderer.send("media-sources", {
         screen: values.screen,
         id,
         audio: values.audio,
         preset: values.preset,
+        camera: values.camera,
         plan,
       });
+      console.log("media-sources-fired from 2");
     });
 
     return () => subscribe.unsubscribe();
-  }, [watch]);
+  }, [watch, id, mutate, plan]);
 
   return { register, isPending, onPreset };
 };
