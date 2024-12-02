@@ -4,7 +4,8 @@
   "main": "server.ts",
   "scripts": {
     "dev": "nodemon server.ts",
-    "start": "node server.ts"
+    "build": "tsc",
+    "start": "npm run build && node dist/server.js"
   },
   "author": "",
   "license": "ISC",
