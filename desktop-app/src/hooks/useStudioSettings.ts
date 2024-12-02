@@ -55,7 +55,6 @@ export const useStudioSettings = (
         preset,
         plan,
       });
-      console.log("media-sources-fired from 1");
     }
   }, [screen, audio, id, plan, preset]);
 
@@ -77,7 +76,6 @@ export const useStudioSettings = (
         camera: values.camera,
         plan,
       });
-      console.log("media-sources-fired from 2");
     });
 
     return () => subscribe.unsubscribe();

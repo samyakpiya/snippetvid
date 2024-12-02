@@ -71,11 +71,9 @@ ipcMain.handle("getSources", async () => {
     fetchWindowIcons: true,
     types: ["window", "screen"]
   });
-  console.log("🔴 DISPLAYS", data);
   return data;
 });
 ipcMain.on("media-sources", (_event, payload) => {
-  console.log("MEDIA SOURCES RECEIVED BY MAIN");
   studio == null ? void 0 : studio.webContents.send("profile-received", payload);
 });
 ipcMain.on("cam-selected", (_event, camera) => {
