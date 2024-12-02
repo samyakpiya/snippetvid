@@ -11,8 +11,7 @@ type Props = {
 const ControlLayout = ({ children, className }: Props) => {
   const [isVisible, setIsVisible] = useState<boolean>(false);
 
-  window.ipcRenderer.on("hide-plugin", (event, payload) => {
-    console.log(event);
+  window.ipcRenderer.on("hide-plugin", (_event, payload) => {
     setIsVisible(payload.state);
   });
 
@@ -21,7 +20,7 @@ const ControlLayout = ({ children, className }: Props) => {
       className={cn(
         className,
         isVisible && "invisible",
-        "bg-[#171717] border-2 border-neutral-700 flex px-1 flex-col rounded-3xl overflow-hidden"
+        "bg-[#171717] border-2 border-neutral-700 flex flex-col rounded-3xl overflow-hidden size-full"
       )}
     >
       <div className="flex justify-between items-center p-5 draggable">
