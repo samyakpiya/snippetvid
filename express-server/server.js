@@ -5,6 +5,7 @@ const dotenv = require("dotenv");
 const fs = require("fs");
 const axios = require("axios");
 const OpenAI = require("openai");
+const path = require("path");
 
 const { Server } = require("socket.io");
 const { Readable } = require("stream");
@@ -31,12 +32,17 @@ app.use(cors());
 
 const io = new Server(server, {
   cors: {
-    origin: process.env.ELECTRON_HOST,
+    origin: [process.env.ELECTRON_HOST, "app://."],
     methods: ["GET", "POST"],
   },
 });
 
 let recordedChunks = [];
+
+const uploadDir = path.join(__dirname, "temp_upload");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+}
 
 io.on("connection", (socket) => {
   console.log("🟢 Socket is connected");
