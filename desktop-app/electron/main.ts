@@ -109,13 +109,10 @@ ipcMain.handle("getSources", async () => {
     types: ["window", "screen"],
   });
 
-  console.log("🔴 DISPLAYS", data);
-
   return data;
 });
 
 ipcMain.on("media-sources", (_event, payload) => {
-  console.log("MEDIA SOURCES RECEIVED BY MAIN");
   studio?.webContents.send("profile-received", payload);
 });
 

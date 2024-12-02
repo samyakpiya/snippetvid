@@ -19,8 +19,6 @@ const Webcam = () => {
         },
       });
 
-      console.log(stream);
-
       if (camElement.current) {
         camElement.current.srcObject = stream;
         await camElement.current.play();
@@ -38,7 +36,6 @@ const Webcam = () => {
       _event: Electron.IpcRendererEvent,
       camera: string
     ) => {
-      console.log("Camera selected:", camera);
       setSelectedDevice(camera);
     };
 
