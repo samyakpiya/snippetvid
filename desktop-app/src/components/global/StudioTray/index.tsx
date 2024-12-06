@@ -29,6 +29,7 @@ const StudioTray = () => {
   };
 
   window.ipcRenderer.on("profile-received", (_event, payload) => {
+    console.log("payload of profile-received", payload);
     setOnSources(payload);
   });
 

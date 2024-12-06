@@ -1,7 +1,6 @@
 import { ClerkLoading, SignedIn, useUser } from "@clerk/clerk-react";
 import { Loader } from "@/components/global/Loader";
 import { useEffect, useState } from "react";
-import { fetchUserProfile } from "@/lib/utils";
 import { useMediaSources } from "@/hooks/useMediaSources";
 import MediaConfiguration from "@/components/global/MediaConfiguration";
 
@@ -37,7 +36,16 @@ const Widget = () => {
 
   useEffect(() => {
     if (user && user.id) {
-      fetchUserProfile(user.id).then((p) => setProfile(p));
+      console.log("Fetching user data for:", user.id);
+      window.ipcRenderer
+        .invoke("fetch-user-data", user.id)
+        .then((p) => {
+          console.log("Received profile data:", p);
+          setProfile(p);
+        })
+        .catch((error) => {
+          console.error("Error fetching user data:", error);
+        });
     }
 
     fetchMediaResources();
@@ -50,13 +58,12 @@ const Widget = () => {
           <Loader />
         </div>
       </ClerkLoading>
+
       <SignedIn>
         {profile ? (
           <MediaConfiguration state={state} user={profile.user} />
         ) : (
-          <div className="size-full flex justify-center items-center">
-            <Loader color="#fff" />
-          </div>
+          <MediaConfiguration state={state} />
         )}
       </SignedIn>
     </div>

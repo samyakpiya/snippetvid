@@ -19,7 +19,10 @@ export const StartRecording = (onSources: {
   mediaRecorder.start(1000);
 };
 
-export const onStopRecording = () => mediaRecorder.stop();
+export const onStopRecording = () => {
+  mediaRecorder.stop();
+  hidePluginWindow(false);
+};
 
 export const stopRecording = () => {
   hidePluginWindow(false);

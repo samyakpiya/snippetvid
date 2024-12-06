@@ -2,7 +2,6 @@ import { updateStudioSettingsSchema } from "@/schemas/studio-settings.schema";
 import { useZodForm } from "./useZodForm";
 import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { updateStudioSettings } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 
 export const useStudioSettings = (
@@ -31,7 +30,8 @@ export const useStudioSettings = (
       preset: "HD" | "SD";
       camera: string;
     }) =>
-      updateStudioSettings(
+      window.ipcRenderer.invoke(
+        "update-studio-settings",
         data.id,
         data.screen,
         data.audio,

@@ -12,7 +12,7 @@ import {
 
 type Props = {
   state: SourceDeviceStateProps;
-  user:
+  user?:
     | ({
         subscription: {
           plan: "PRO" | "FREE";
@@ -48,11 +48,11 @@ const MediaConfiguration = ({ state, user }: Props) => {
   const activeCamera = state.cameras?.[0];
 
   const { isPending, register } = useStudioSettings(
-    user!.id,
+    user?.id || "",
     user?.studio?.screen || state.displays?.[0]?.id,
     user?.studio?.mic || state.audioInputs?.[0]?.deviceId,
-    user?.studio?.preset,
-    user?.subscription?.plan,
+    user?.studio?.preset || "SD",
+    user?.subscription?.plan || "FREE",
     user?.studio?.camera || state.cameras?.[0]?.deviceId
   );
 
@@ -73,7 +73,7 @@ const MediaConfiguration = ({ state, user }: Props) => {
             disabled
           >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder={activeScreen?.name} />
+              <SelectValue placeholder="Select screen" />
             </SelectTrigger>
             <SelectContent>
               {state.displays?.map((display) => (
